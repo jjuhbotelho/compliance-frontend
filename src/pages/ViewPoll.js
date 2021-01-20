@@ -16,7 +16,7 @@ export default function ViewPoll({ match }) {
 
   useEffect(() => {
     fetchPoll()
-  }, [])
+  }, [voted])
 
   const vote = async (title, restaurants, restaurant) => {
     await fetch(`http://localhost:5000/polls/${match.params.poll}`, {
@@ -34,6 +34,26 @@ export default function ViewPoll({ match }) {
     setVoted(true)
   }
 
+  const getTotalVotes = () => {
+    let totalVotes = 0
+
+    poll.restaurants.forEach(restaurant => {
+        totalVotes += restaurant.count
+    })
+
+    return totalVotes
+}
+
+  const getRestaurantPercentage = (selectedRestaurant) => {
+    const totalVotes = getTotalVotes()
+
+    if (totalVotes === 0) {
+        return 0
+    }
+
+    return Math.round((selectedRestaurant.count / totalVotes) * 100)
+  }
+
   return (
     <div className="container mx-auto mt-16 px-5">
       <h1 className="my-5 text-3xl text-center">
@@ -44,6 +64,10 @@ export default function ViewPoll({ match }) {
         <div className="w-full max-w-3xl mx-auto bg-white shadow">
           <header className='px-5 py-4 flex justify-between items-center'>
             {poll.title}
+
+            {voted && <span>{getTotalVotes()} votos</span>}
+
+            <Button onClick={() => setVoted(true)}>Ver Resultados</Button>
           </header>
 
           {poll.restaurants.map(restaurant => {
@@ -51,9 +75,9 @@ export default function ViewPoll({ match }) {
               <div className='px-5 py-4 border-t border-gray-400 flex justify-between items-center' key={restaurant._id}>
                 {restaurant.name}
 
-                {!voted ? (
-                  <Button onClick={() => vote(poll.title, poll.restaurants.map(({name}) => name) , restaurant._id)}>Vote</Button>
-                ): <span className='text-blue-500'>29</span>}
+                {voted ? (
+                  <span className='text-blue-500'> {getRestaurantPercentage(restaurant)}% </span>
+                ) :  <Button onClick={() => vote(poll.title, poll.restaurants.map(({name}) => name) , restaurant._id)}>Votar</Button>}
               </div>
             )
           })}
