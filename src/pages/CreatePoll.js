@@ -35,6 +35,21 @@ export default function CreatePoll(){
     setRestaurants(newRestaurants)
   }
 
+  const updatePollsToLocalStorage = (successData) => {
+    const existingPolls = JSON.parse(localStorage.getItem('polls')) || []
+
+    const updatedPolls = [
+        ...existingPolls,
+        {
+            title,
+            id: successData.pollId
+        }
+    ]
+
+    localStorage.setItem('polls', 
+    JSON.stringify(updatedPolls))
+  }
+
   const createPoll = async () => {
     const response = await fetch('http://localhost:5000/polls', {
       method: 'POST',
@@ -47,16 +62,15 @@ export default function CreatePoll(){
       })
     })
 
-  console.log(response)  
-
-
   const data = await response.json()
     if (! response.ok) {
       setErrors(data)
 
       return
     }
+
     setSuccess(data)
+    updatePollsToLocalStorage(data)
   }
 
   return (
